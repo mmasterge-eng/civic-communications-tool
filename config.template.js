@@ -14,7 +14,7 @@ const CONFIG = {
   // 1. Create a project
   // 2. Enable "Google Civic Information API"
   // 3. Create an API key
-  CIVIC_API_KEY: 'YOUR_GOOGLE_CIVIC_API_KEY_HERE',
+  CIVIC_API_KEY: 'AIzaSyBr-fZ_DbkMib5W5znWQwMd2QcEa-0qQcU',
   
   // ========================================
   // OPTIONAL: Gmail API Configuration
