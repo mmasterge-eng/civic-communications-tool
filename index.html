@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Your Representatives</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📧 Contact Your Representatives</h1>
+      <p class="tagline">Make your voice heard on the issues that matter to you</p>
+    </header>
+
+    <!-- Configuration Notice (shown when API key is missing) -->
+    <div id="config-notice" class="notice warning" style="display: none;">
+      <strong>⚠️ Configuration Required</strong>
+      <p>Please configure your API keys in <code>config.js</code>. See <code>README.md</code> for instructions.</p>
+    </div>
+
+    <!-- Auth Section -->
+    <div id="auth-section" class="section" style="display: none;">
+      <button id="authorize-button" class="btn btn-primary">
+        📨 Authorize Gmail to Send Messages
+      </button>
+      <p class="help-text">We'll only use this to send emails on your behalf to your representatives.</p>
+    </div>
+
+    <!-- ZIP Code Lookup -->
+    <div class="section lookup-section">
+      <label for="zipInput">Enter your ZIP code to find your representatives:</label>
+      <div class="input-group">
+        <input type="text" id="zipInput" placeholder="e.g., 03054" maxlength="5" pattern="\d{5}">
+        <button id="findBtn" class="btn btn-primary">Find My Reps</button>
+      </div>
+      <div id="loading" class="loading" style="display: none;">
+        <span class="spinner"></span> Looking up your representatives...
+      </div>
+      <div id="error" class="notice error" style="display: none;"></div>
+    </div>
+
+    <!-- Results Sections -->
+    <div id="results">
+      <!-- Federal Reps -->
+      <div id="federal-section" class="section" style="display: none;">
+        <h2>🏛️ Federal Representatives</h2>
+        <div id="federal-reps" class="reps-grid"></div>
+      </div>
+
+      <!-- State Reps -->
+      <div id="state-section" class="section" style="display: none;">
+        <h2>🏢 State Representatives</h2>
+        <div id="state-reps" class="reps-grid"></div>
+      </div>
+
+      <!-- Local Reps -->
+      <div id="local-section" class="section" style="display: none;">
+        <h2>🏘️ Local Officials</h2>
+        <div id="local-reps" class="reps-grid"></div>
+      </div>
+
+      <!-- Favorites -->
+      <div id="favorites-section" class="section" style="display: none;">
+        <h2>⭐ Your Favorites</h2>
+        <div id="favorites-reps" class="reps-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Composer Modal -->
+  <div id="email-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>✉️ Compose Message</h3>
+        <button class="close-btn" onclick="closeEmailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="recipient-info" id="recipient-info"></div>
+        
+        <label for="email-template">Quick Start (Optional):</label>
+        <select id="email-template" class="form-control">
+          <option value="">-- Write your own message --</option>
+          <option value="general">General Concern</option>
+          <option value="support">Support Legislation</option>
+          <option value="oppose">Oppose Legislation</option>
+          <option value="local-issue">Local Issue</option>
+          <option value="thank-you">Thank You</option>
+        </select>
+
+        <label for="email-subject">Subject:</label>
+        <input type="text" id="email-subject" class="form-control" placeholder="Brief description of your concern">
+
+        <label for="email-body">Your Message:</label>
+        <textarea id="email-body" class="form-control" rows="10" 
+                  placeholder="Dear [Representative Name],
+
+I am writing to you as your constituent regarding...
+
+[State your position clearly and respectfully]
+
+Thank you for your service.
+
+Sincerely,
+[Your Name]
+[Your City, State ZIP]"></textarea>
+
+        <div class="help-text">
+          <strong>Tips for effective messages:</strong>
+          <ul>
+            <li>Be clear and concise</li>
+            <li>State your position early</li>
+            <li>Include specific bill numbers if applicable</li>
+            <li>Share personal stories or local impact</li>
+            <li>Be respectful and professional</li>
+            <li>Include your contact information</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+        <button class="btn btn-primary" id="send-email-btn">📤 Send Email</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      <strong>Privacy Notice:</strong> Your data stays in your browser. We don't store any information.
+      <br>
+      Powered by <a href="https://developers.google.com/civic-information" target="_blank">Google Civic Information API</a>
+    </p>
+  </footer>
+
+  <!-- Load Config First -->
+  <script src="config.js"></script>
+  <!-- Load Google API -->
+  <script src="https://apis.google.com/js/api.js" async defer onload="handleClientLoad()"></script>
+  <!-- Application Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
