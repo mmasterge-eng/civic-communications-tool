@@ -21,7 +21,7 @@ const CONFIG = {
   // ========================================
   // Only needed if you want to send emails through Gmail
   // Get from: https://console.cloud.google.com/apis/credentials
-  GMAIL_OAUTH_CLIENT_ID: '115231092056720340681',
+  GMAIL_OAUTH_CLIENT_ID: '784162659656-1u3qfphmsn3lsfbsm222pcqhtgnj0ich.apps.googleusercontent.com',
   GMAIL_API_KEY: '69ef65dee8ace6b46f1028fba9bee84062cc5515',
   
   // ========================================
