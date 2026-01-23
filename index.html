@@ -1,3 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="My Reps">
+  <meta name="description" content="Find and contact your elected representatives">
 
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Contact Your Representatives</title> <link rel="stylesheet" href="style.css"> </head> <body> <div class="container"> <header> <h1>📧 Contact Your Representatives</h1> <p class="tagline">Make your voice heard on the issues that matter to you</p> </header>
+  <title>My Representatives</title>
 
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-72.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="app-header">
+      <h1>🏛️ My Representatives</h1>
+      <div class="location-display" id="location-display" style="display: none;">
+        📍 <span id="location-text"></span>
+      </div>
+    </header>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="close-settings" class="close-btn">&times;</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h3>Your Contact Information</h3>
+          <p class="settings-description">This info will be used in your email signature</p>
+          <div class="form-group">
+            <label for="user-name">Your Name</label>
+            <input type="text" id="user-name" placeholder="e.g., John Smith">
+          </div>
+          <div class="form-group">
+            <label for="user-city">City/Town</label>
+            <input type="text" id="user-city" placeholder="e.g., Nashua">
+          </div>
+          <div class="form-group">
+            <label for="user-email">Email (optional)</label>
+            <input type="email" id="user-email" placeholder="e.g., john@example.com">
+          </div>
+          <button id="save-settings" class="btn btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+    <div id="settings-overlay" class="settings-overlay"></div>
+
+    <!-- Config Notice -->
+    <div id="config-notice" class="notice warning" style="display: none;">
+      <strong>⚠️ Configuration Required</strong>
+      <p>Please configure your API keys in config.js</p>
+    </div>
+
+    <!-- ZIP Lookup -->
+    <div class="lookup-section" id="lookup-section">
+      <div class="lookup-card">
+        <label for="zipInput">Enter your ZIP code</label>
+        <div class="input-group">
+          <input type="text" id="zipInput" placeholder="e.g., 03054" maxlength="5" pattern="\d{5}" inputmode="numeric">
+          <button id="findBtn" class="btn btn-primary">Find My Reps</button>
+        </div>
+        <div id="auth-section" class="auth-hint" style="display: none;">
+          <button id="authorize-button" class="btn-link">📨 Connect Gmail to send emails directly</button>
+        </div>
+      </div>
+      <div id="loading" class="loading" style="display: none;">
+        <span class="spinner"></span> Looking up representatives...
+      </div>
+      <div id="error" class="notice error" style="display: none;"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="org-chart" style="display: none;">
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterReps('all', this)">All Officials</button>
+        <button class="filter-btn" onclick="filterReps('federal', this)">Federal</button>
+        <button class="filter-btn" onclick="filterReps('state', this)">State</button>
+      </div>
+
+      <!-- Federal -->
+      <div class="level level-federal expanded" data-level="federal">
+        <div class="level-header" onclick="toggleLevel(this.parentElement)">
+          <div class="level-icon">🇺🇸</div>
+          <div class="level-info">
+            <div class="level-title">Federal</div>
+            <div class="level-subtitle">President, Congress</div>
+          </div>
+          <span class="level-count" id="federal-count">0</span>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="officials" id="federal-officials"></div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- State -->
+      <div class="level level-state" data-level="state">
+        <div class="level-header" onclick="toggleLevel(this.parentElement)">
+          <div class="level-icon">🏛️</div>
+          <div class="level-info">
+            <div class="level-title" id="state-title">State</div>
+            <div class="level-subtitle">Governor, Legislature</div>
+          </div>
+          <span class="level-count" id="state-count">0</span>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="officials" id="state-officials"></div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- County -->
+      <div class="level level-county" data-level="county">
+        <div class="level-header" onclick="toggleLevel(this.parentElement)">
+          <div class="level-icon">🏢</div>
+          <div class="level-info">
+            <div class="level-title" id="county-title">County</div>
+            <div class="level-subtitle">Commissioners, Officials</div>
+          </div>
+          <span class="level-count" id="county-count">0</span>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="officials" id="county-officials"></div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- Local -->
+      <div class="level level-local" data-level="local">
+        <div class="level-header" onclick="toggleLevel(this.parentElement)">
+          <div class="level-icon">🏘️</div>
+          <div class="level-info">
+            <div class="level-title" id="local-title">Local</div>
+            <div class="level-subtitle">City/Town Officials</div>
+          </div>
+          <span class="level-count" id="local-count">0</span>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="officials" id="local-officials"></div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>Data by <a href="https://www.cicerodata.com/" target="_blank">Cicero</a></p>
+      <button id="settings-btn" class="settings-btn-footer" aria-label="Settings">⚙️ Settings</button>
+    </footer>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+  <!-- Mobile Bottom Sheet -->
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="sheet-handle"></div>
+    <div class="detail-header">
+      <div class="detail-photo" id="detail-photo"></div>
+      <div class="detail-name" id="detail-name"></div>
+      <div class="detail-role" id="detail-role"></div>
+      <span class="detail-party-badge" id="detail-party"></span>
+    </div>
+    <div class="quick-actions" id="quick-actions"></div>
+    <div class="contact-section" id="contact-section"></div>
+    <div class="social-section" id="social-section"></div>
+  </div>
+
+  <!-- Desktop Side Panel -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="panel-header">
+      <button class="panel-close" onclick="closeAllPanels()">✕</button>
+      <div class="panel-photo" id="panel-photo"></div>
+      <div class="panel-name" id="panel-name"></div>
+      <div class="panel-role" id="panel-role"></div>
+      <span class="panel-party-badge" id="panel-party"></span>
+    </div>
+    <div class="panel-body">
+      <div class="panel-actions" id="panel-actions"></div>
+      <div class="panel-contact" id="panel-contact"></div>
+      <div class="panel-social" id="panel-social"></div>
+    </div>
+  </div>
+
+  <!-- Issue Selector Modal -->
+  <div id="issue-modal" class="modal" style="display: none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>📋 What would you like to discuss?</h3>
+        <button class="close-btn" onclick="closeIssueModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="issue-recipient" id="issue-recipient"></div>
+        <div class="issue-categories" id="issue-categories"></div>
+        <div class="issue-topics" id="issue-topics" style="display: none;">
+          <button class="back-btn" onclick="showCategories()">← Back to Categories</button>
+          <div class="topics-list" id="topics-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeIssueModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="openCustomEmail()">✏️ Write Custom Message</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Modal -->
+  <div id="email-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>✉️ Compose Message</h3>
+        <button class="close-btn" onclick="closeEmailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="recipient-info" id="recipient-info"></div>
+        <label for="email-template">Template:</label>
+        <select id="email-template" class="form-control" onchange="applyEmailTemplate()">
+          <option value="">-- Write your own --</option>
+          <option value="general">General Concern</option>
+          <option value="support">Support Legislation</option>
+          <option value="oppose">Oppose Legislation</option>
+          <option value="local-issue">Local Issue</option>
+          <option value="thank-you">Thank You</option>
+        </select>
+        <label for="email-subject">Subject:</label>
+        <input type="text" id="email-subject" class="form-control" placeholder="Brief description">
+        <label for="email-body">Message:</label>
+        <textarea id="email-body" class="form-control" rows="8" placeholder="Dear [Name],
+
+I am writing as your constituent..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="sendEmail()">📤 Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Favorites Toast -->
+  <div id="favorites-toast" class="toast" style="display: none;">
+    <span id="toast-message"></span>
+  </div>
+
+  <!-- Install Prompt -->
+  <div id="install-prompt" class="install-prompt" style="display: none;">
+    <p>📱 Install for quick access</p>
+    <div class="install-buttons">
+      <button id="install-btn" class="btn btn-primary btn-small">Install</button>
+      <button id="install-dismiss" class="btn btn-secondary btn-small">Later</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('✅ SW registered'))
+        .catch(err => console.log('SW failed:', err));
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-prompt').style.display = 'block';
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        document.getElementById('install-prompt').style.display = 'none';
+      }
+    });
+
+    document.getElementById('install-dismiss').addEventListener('click', () => {
+      document.getElementById('install-prompt').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
