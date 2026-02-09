@@ -1168,6 +1168,28 @@ html, body {
   font-size: 0.9rem;
 }
 
+.web-form-notice {
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-blue);
+  padding: 16px;
+  border-radius: var(--radius-small);
+  margin-bottom: 16px;
+}
+
+.web-form-notice strong {
+  color: var(--accent-blue);
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.web-form-notice p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 8px 0 12px 0;
+  line-height: 1.5;
+}
+
 .modal-body label {
   display: block;
   font-size: 0.85rem;

@@ -925,6 +925,14 @@ function selectTopic(topic) {
 
 function openEmailWithIssue(topic) {
   const hasEmail = currentRecipient.emails && currentRecipient.emails.length > 0;
+  const hasUrl = currentRecipient.urls && currentRecipient.urls.length > 0;
+
+  // If no email but has URL, use web form workflow
+  if (!hasEmail && hasUrl) {
+    openWebFormContact(topic);
+    return;
+  }
+
   const contactMethod = hasEmail ? currentRecipient.emails[0] : 'Via Official Website';
 
   document.getElementById('recipient-info').innerHTML = `
@@ -1087,6 +1095,86 @@ function updateEmailModalButton() {
   } else {
     newBtn.style.display = 'none';
   }
+}
+
+// Web Form Contact Workflow
+function openWebFormContact(topic) {
+  // Generate the message
+  let bodyText;
+  if (topic.bodyTemplate) {
+    bodyText = topic.bodyTemplate.replace(/\[Representative Name\]/g, currentRecipient.name);
+  } else {
+    const template = CONFIG.EMAIL_TEMPLATES['issue-specific'];
+    bodyText = template.body
+      .replace(/\[Representative Name\]/g, currentRecipient.name)
+      .replace(/\[ISSUE_NAME\]/g, topic.name);
+  }
+
+  const fullMessage = bodyText + generateEmailSignature();
+  const contactUrl = currentRecipient.urls[0];
+
+  // Show web form mode in email modal
+  document.getElementById('recipient-info').innerHTML = `
+    <div class="web-form-notice">
+      <strong>📝 Web Form Contact</strong><br>
+      <p>This representative uses a web form for contact. We'll copy your message and open their contact page.</p>
+      <strong>To:</strong> ${currentRecipient.name} (${currentRecipient.office})<br>
+      <strong>Topic:</strong> ${topic.name}
+    </div>
+  `;
+
+  // Show the pre-filled message (read-only)
+  document.getElementById('email-subject').value = topic.subject;
+  document.getElementById('email-subject').readOnly = true;
+  document.getElementById('email-body').value = fullMessage;
+  document.getElementById('email-body').readOnly = true;
+
+  // Hide template selector for web form mode
+  document.getElementById('email-template').style.display = 'none';
+
+  // Update button to "Copy & Open Form"
+  const modalFooter = document.querySelector('#email-modal .modal-footer');
+  modalFooter.innerHTML = `
+    <button class="btn btn-secondary" onclick="closeWebFormModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="copyMessageAndOpenForm()">📋 Copy & Open Form</button>
+  `;
+
+  document.getElementById('email-modal').style.display = 'flex';
+}
+
+function copyMessageAndOpenForm() {
+  const subject = document.getElementById('email-subject').value;
+  const body = document.getElementById('email-body').value;
+
+  const textToCopy = `Subject: ${subject}\n\n${body}`;
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    alert('✅ Message copied to clipboard!\n\nNow opening the contact form in a new tab. Please paste your message into their form.');
+    const url = ensureHttps(currentRecipient.urls[0]);
+    window.open(url, '_blank');
+    closeWebFormModal();
+    closeAllPanels();
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    alert('Could not copy to clipboard automatically. Please copy the message manually.\n\nOpening contact form...');
+    const url = ensureHttps(currentRecipient.urls[0]);
+    window.open(url, '_blank');
+  });
+}
+
+function closeWebFormModal() {
+  // Reset to normal email modal state
+  document.getElementById('email-subject').readOnly = false;
+  document.getElementById('email-body').readOnly = false;
+  document.getElementById('email-template').style.display = 'block';
+
+  // Restore normal modal footer
+  const modalFooter = document.querySelector('#email-modal .modal-footer');
+  modalFooter.innerHTML = `
+    <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="sendEmail()">📤 Send</button>
+  `;
+
+  closeEmailModal();
 }
 
 function copyAndOpenSite() {
