@@ -935,11 +935,19 @@ function openEmailWithIssue(topic) {
 
   updateEmailModalButton();
 
-  const template = CONFIG.EMAIL_TEMPLATES['issue-specific'];
+  // Use topic's bodyTemplate if available, otherwise fall back to generic template
+  let bodyText;
+  if (topic.bodyTemplate) {
+    bodyText = topic.bodyTemplate.replace(/\[Representative Name\]/g, currentRecipient.name);
+  } else {
+    // Fallback to old template for backward compatibility
+    const template = CONFIG.EMAIL_TEMPLATES['issue-specific'];
+    bodyText = template.body
+      .replace(/\[Representative Name\]/g, currentRecipient.name)
+      .replace(/\[ISSUE_NAME\]/g, topic.name);
+  }
+
   document.getElementById('email-subject').value = topic.subject;
-  const bodyText = template.body
-    .replace(/\[Representative Name\]/g, currentRecipient.name)
-    .replace(/\[ISSUE_NAME\]/g, topic.name);
   document.getElementById('email-body').value = bodyText + generateEmailSignature();
 
   document.getElementById('email-template').value = '';
