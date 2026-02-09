@@ -361,6 +361,10 @@ html, body {
   box-shadow: var(--shadow);
 }
 
+.level.hidden {
+  display: none !important;
+}
+
 .level-header {
   display: flex;
   align-items: center;

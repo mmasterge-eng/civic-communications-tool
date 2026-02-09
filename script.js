@@ -476,9 +476,25 @@ function displayRepresentatives(reps) {
     level.container.innerHTML = '';
     level.count.textContent = level.reps.length;
 
+    // Get the parent level section
+    const levelSection = level.container.closest('.level');
+
     if (level.reps.length === 0) {
-      level.container.innerHTML = '<div class="no-results">No officials found at this level</div>';
+      // Hide county and local sections if they have no data
+      if (levelKey === 'county' || levelKey === 'local') {
+        if (levelSection) {
+          levelSection.classList.add('hidden');
+        }
+      } else {
+        // For federal/state, show "no results" message
+        level.container.innerHTML = '<div class="no-results">No officials found at this level</div>';
+      }
       return;
+    }
+
+    // Show section if it has data (remove hidden class if it was previously hidden)
+    if (levelSection && levelSection.classList.contains('hidden')) {
+      levelSection.classList.remove('hidden');
     }
 
     const branches = { executive: [], legislative: [], other: [] };
