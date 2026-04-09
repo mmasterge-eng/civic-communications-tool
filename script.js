@@ -256,55 +256,17 @@ function updateAuthUI() {
   }
 }
 
-// === CORS Proxy Management ===
-const CORS_PROXIES = [
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-  (url) => `https://thingproxy.freeboard.io/fetch/${url}`
-];
+// === Cicero Proxy ===
+const CICERO_WORKER_URL = 'https://round-frost-3717.mmasterge.workers.dev';
 
-async function fetchWithTimeout(url, timeout = 10000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (e) {
-    clearTimeout(timeoutId);
-    throw e;
-  }
-}
-
-async function fetchWithCorsProxy(url) {
-  let lastError = null;
-
-  for (let i = 0; i < CORS_PROXIES.length; i++) {
-    const proxyUrl = CORS_PROXIES[i](url);
-    try {
-      console.log(`Trying proxy ${i + 1}/${CORS_PROXIES.length}...`);
-      const response = await fetchWithTimeout(proxyUrl, 15000);
-
-      if (response.ok) {
-        console.log(`✅ Proxy ${i + 1} succeeded`);
-        return response;
-      }
-
-      console.log(`Proxy ${i + 1} returned status ${response.status}`);
-      lastError = new Error(`HTTP ${response.status}`);
-    } catch (e) {
-      if (e.name === 'AbortError') {
-        console.log(`⏱️ Proxy ${i + 1} timed out`);
-        lastError = new Error('Request timed out');
-      } else {
-        console.log(`❌ Proxy ${i + 1} failed:`, e.message);
-        lastError = e;
-      }
-    }
-  }
-
-  throw lastError || new Error('All CORS proxies failed. Please try again later.');
+async function fetchWithCorsProxy(ciceroUrl) {
+  const url = new URL(ciceroUrl);
+  const zip = url.searchParams.get('search_postal');
+  const key = url.searchParams.get('key');
+  const workerUrl = `${CICERO_WORKER_URL}/?zip=${encodeURIComponent(zip)}&key=${encodeURIComponent(key)}`;
+  const response = await fetch(workerUrl);
+  if (!response.ok) throw new Error(`Worker returned HTTP ${response.status}`);
+  return response;
 }
 
 // === Find Representatives ===
