@@ -262,8 +262,7 @@ const CICERO_WORKER_URL = 'https://round-frost-3717.mmasterge.workers.dev';
 async function fetchWithCorsProxy(ciceroUrl) {
   const url = new URL(ciceroUrl);
   const zip = url.searchParams.get('search_postal');
-  const key = url.searchParams.get('key');
-  const workerUrl = `${CICERO_WORKER_URL}/?zip=${encodeURIComponent(zip)}&key=${encodeURIComponent(key)}`;
+  const workerUrl = `${CICERO_WORKER_URL}/?zip=${encodeURIComponent(zip)}`;
   const response = await fetch(workerUrl);
   if (!response.ok) throw new Error(`Worker returned HTTP ${response.status}`);
   return response;
