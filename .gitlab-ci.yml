@@ -1,0 +1,12 @@
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp index.html script.js style.css config.js public/
+    - "[ -f manifest.json ] && cp manifest.json public/ || true"
+    - "[ -f sw.js ] && cp sw.js public/ || true"
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
