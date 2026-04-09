@@ -2,9 +2,12 @@ pages:
   stage: deploy
   script:
     - mkdir -p public
-    - cp index.html script.js style.css config.js public/
+    - cp index.html script.js style.css public/
     - "[ -f manifest.json ] && cp manifest.json public/ || true"
     - "[ -f sw.js ] && cp sw.js public/ || true"
+    - |
+      sed "s|CICERO_API_KEY_PLACEHOLDER|$CICERO_API_KEY|g;
+           s|GMAIL_CLIENT_ID_PLACEHOLDER|$GMAIL_CLIENT_ID|g" config.template.js > public/config.js
   artifacts:
     paths:
       - public
