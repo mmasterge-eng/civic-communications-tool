@@ -266,6 +266,18 @@ I am writing as your constituent..."></textarea>
       navigator.serviceWorker.register('./sw.js')
         .then(() => console.log('✅ SW registered'))
         .catch(err => console.log('SW failed:', err));
+
+      // Listen for new version signal from service worker
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'NEW_VERSION') {
+          showUpdateBanner();
+        }
+      });
+    }
+
+    function showUpdateBanner() {
+      const banner = document.getElementById('update-banner');
+      if (banner) banner.style.display = 'flex';
     }
 
     let deferredPrompt;
@@ -288,5 +300,16 @@ I am writing as your constituent..."></textarea>
       document.getElementById('install-prompt').style.display = 'none';
     });
   </script>
+  <!-- Update available banner -->
+  <div id="update-banner" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:#2563eb; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    align-items:center; gap:12px; z-index:9999; font-family:sans-serif; font-size:14px; white-space:nowrap;">
+    <span>🔄 New version available</span>
+    <button onclick="window.location.reload(true)"
+      style="background:white; color:#2563eb; border:none; padding:6px 14px; border-radius:8px;
+      font-weight:600; cursor:pointer; font-size:13px;">Update Now</button>
+    <button onclick="document.getElementById('update-banner').style.display='none'"
+      style="background:transparent; color:white; border:none; cursor:pointer; font-size:18px; line-height:1;">✕</button>
+  </div>
 </body>
 </html>

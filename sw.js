@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-reps-v1';
+const CACHE_NAME = 'my-reps-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -15,19 +15,24 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate: clean up old caches
+// Activate: clean up old caches and notify clients of update
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => {
+      // Tell all open tabs a new version is active
+      self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'NEW_VERSION' }));
+      });
+    })
   );
   self.clients.claim();
 });
 
 // Fetch: serve from cache, fall back to network
 self.addEventListener('fetch', event => {
-  // Don't cache API calls — always go to network
+  // Never cache API calls
   if (event.request.url.includes('workers.dev') || event.request.url.includes('cicerodata.com')) {
     return;
   }
